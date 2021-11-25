@@ -1,0 +1,19 @@
+{% extends 'index.html' %}
+
+
+{% block content %}
+<h1> hello world!!</h1>
+
+{{soup}}
+{% for data in soup %}
+{{data.id}}
+{{ data.name}}
+{{ data.isbn}}
+{{ data.authors}}
+{{data.country}}
+{{data.numberOfPages}}
+{{data.publisher}}
+{{data.release_date}}
+{% endfor %}
+
+{% endblock %}

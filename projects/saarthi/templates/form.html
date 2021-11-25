@@ -1,0 +1,21 @@
+{% extends 'index.html' %}
+
+
+{% block content %}
+<h1> hello world</h1>
+
+<form action="updateTablesecond" method='post'>
+    <!--{% csrf_token %}-->
+    id<input type="text" name="id">
+    name<input type="text" name="name">
+    isbn <input type="text" name="isbn">
+    authors <input type="text" name="authors">
+    country<input type="text" name="country">
+    numberOfPages<input type="integer" name="numberOfPages">
+    publisher<input type="text" name="publisher">
+    release_date<input type="text" name="release_date">
+    <input type="submit" name="" id="">
+    
+
+</form>
+{% endblock %}
