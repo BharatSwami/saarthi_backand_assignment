@@ -2,18 +2,17 @@
 
 
 {% block content %}
-<h1> hello world!!</h1>
 
-{{soup}}
-{% for data in soup %}
-{{data.id}}
-{{ data.name}}
-{{ data.isbn}}
-{{ data.authors}}
-{{data.country}}
-{{data.numberOfPages}}
-{{data.publisher}}
-{{data.release_date}}
+{{soup}}<br>
+{% for data in soup %}<br>
+{{data.id}}<br>
+{{ data.name}}<br>
+{{ data.isbn}}<br>
+{{ data.authors}}<br>
+{{data.country}}<br>
+{{data.numberOfPages}}<br>
+{{data.publisher}}<br>
+{{data.release_date}}<br>
 {% endfor %}
 
 {% endblock %}

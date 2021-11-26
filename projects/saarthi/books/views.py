@@ -5,18 +5,27 @@ from bs4 import BeautifulSoup
 import sys
 import json
 import re
-from django.http import HttpResponse, JsonResponse
-# Create your vi
-# ews here.
+from django.http import HttpResponse, JsonResponse,HttpResponseRedirect
+
+from collections import OrderedDict
 from django.shortcuts import render
 from .models import table
+import socket
+
+def hostname():
+    try:
+        HOSTNAME = socket.gethostname()
+    except:
+        HOSTNAME = 'localhost'
+    return HOSTNAME
+
 
 def allData(soup1):
     data={
         'name':soup1['name'],
         'isbn':soup1['isbn'],
         'authors':soup1['authors'],
-        'numberOfPages':soup1['numberOfPages'],
+        'numberOfPages':int(soup1['numberOfPages']),
         'publisher':soup1['publisher'],
         'country' : soup1['country'],
         'date':soup1['released']
@@ -33,62 +42,58 @@ def represtingInJson():
     }
 
     for data in alldata:
-        dit={'id':data.id,
+        dit={'id':int(data.id),
             "name": data.name,
     "isbn" : data.isbn,
     "authors" : data.authors,
-    "country" : data.country,
-    "numberOfPages":data.numberOfPages,
+    "numberOfPages":int(data.numberOfPages),
     "publisher":data.publisher,
+    "country" : data.country,
     "release_date":data.release_date
         }
         json_data["data"].append(dit)
     return json_data
 
-def represtingInJson3(record):
-    #alldata= table.objects.all()
-
-    json_data={"status_code":200,
-            "status":"success",
-            "data":[]
-    }
+def represtingInJson3(record,dit=OrderedDict()):
+    json_data=dit
+    json_data["status_code"]=200
+    json_data["status"]="success"
+    json_data["data"]=[]
 
     alldata=record
-    #print(allData.id)
     try:
         for data in alldata:
-            dit={'id':data.id,
-                "name": data.name,
-        "isbn" : data.isbn,
-        "authors" : data.authors,
-        "country" : data.country,
-        "numberOfPages":data.numberOfPages,
-        "publisher":data.publisher,
-        "release_date":data.release_date
+            dit={'id':int(data.id),
+            "name": data.name,
+    "isbn" : data.isbn,
+    "authors" : data.authors,
+    "numberOfPages":int(data.numberOfPages),
+    "publisher":data.publisher,
+    "country" : data.country,
+    "release_date":data.release_date
             }
             json_data["data"].append(dit)
     except:
         pass
     return json_data
 
-def represtingInJson1(record):
-    #alldata= table.objects.all()
+def represtingInJson1(record,dit=OrderedDict()):
 
-    json_data={"status_code":200,
-            "status":"success",
-            "data":[]
-    }
+    json_data=dit
+    json_data["status_code"]=200
+    json_data["status"]="success"
+    json_data["data"]=[]
 
     data=record
     try:
-        dit={'id':data.id,
-                "name": data.name,
-        "isbn" : data.isbn,
-        "authors" : data.authors,
-        "country" : data.country,
-        "numberOfPages":data.numberOfPages,
-        "publisher":data.publisher,
-        "release_date":data.release_date
+        dit={'id':int(data.id),
+            "name": data.name,
+    "isbn" : data.isbn,
+    "authors" : data.authors,
+    "numberOfPages":int(data.numberOfPages),
+    "publisher":data.publisher,
+    "country" : data.country,
+    "release_date":data.release_date
             }
         json_data["data"].append(dit)
     except:
@@ -98,51 +103,38 @@ def represtingInJson1(record):
 
 def updateTable(soup1):
     post=table()
-    #post.id=soup1['id']
     post.name= soup1['name']
     post.isbn = soup1['isbn']
     post.authors = soup1['authors']
     post.country = soup1['country']
-    post.numberOfPages=soup1['numberOfPages']
+    post.numberOfPages=int(soup1['numberOfPages'])
     post.publisher=soup1['publisher']
     post.release_date=soup1['released']
     post.save()
     return
-    #allvideos= table.objects.all()
-    #return render(request,'result.html',{'soup':allvideos})
 def updateTablesecond(request):
-    try:
-        id=request.POST['id']
-        #post=table(id=id)
-        print("heha")
-        post=table(id=id)
-        post.name =request.POST['name']
-        post.isbn =request.POST['isbn']
-        post.authors = request.POST['authors']
-        post.country= request.POST['country']
-        post.numberOfPages=request.POST['numberOfPages']
-        post.publisher=request.POST['publisher']
-        post.release_date=request.POST['release_date']
-        
-        post.save()
-    except:
-        id=request.GET['id']
-        #post=table(id=id)
-        print("heha")
-        post=table(id=id)
-        post.name =request.GET['name']
-        post.isbn =request.GET['isbn']
-        post.authors = request.GET['authors']
-        post.country= request.GET['country']
-        post.numberOfPages=request.GET['numberOfPages']
-        post.publisher=request.GET['publisher']
-        post.release_date=request.GET['release_date']
-        
-        post.save()
+    
+    id=request.POST['id']
+
+    print("heha")
+    post=table(id=id)
+    post.name =request.POST['name']
+    post.isbn =request.POST['isbn']
+    post.authors = request.POST['authors']
+    post.country= request.POST['country']
+    post.numberOfPages=int(request.POST['numberOfPages'])
+    post.publisher=request.POST['publisher']
+    post.release_date=request.POST['release_date']
+    
+    post.save()
 
 
-    allvideos= table.objects.all()
-    return render(request,'result.html',{'soup':allvideos})
+    allvideos= table(id=int(id))
+    json_data=represtingInJson1(allvideos,dit=OrderedDict({"message":f"The book {post.name} was updated successfully"}))
+    json_pretty = json.dumps(json_data,default=lambda o: o.__dict__,sort_keys=False,  indent=9)
+    host = request.build_absolute_uri('/')
+    url=f'{host}api/v1/books/:{id}'
+    return HttpResponseRedirect(url)
 
 
 def apiData(id):    
@@ -161,16 +153,22 @@ def api(request):
 
     if request.method == 'POST':
         num1=request.POST['num1']
-        soup1=apiData(num1)
-        #del soup1['characters']
-        #print(soup)
-        updateTable(soup1)
-        allvideos= table.objects.all()
-        json_data=represtingInJson()
-        #return render(request,'result.html',{'soup':json_data})
-        #return render(request,'result.html',{'soup':soup1})
-        json_pretty = json.dumps(json_data,default=lambda o: o.__dict__,sort_keys=False,  indent=9)
-        return HttpResponse(json_pretty,content_type="application/json")
+        try:
+            soup1=apiData(num1)
+            updateTable(soup1)
+            allvideos= table.objects.all()
+            json_data=represtingInJson()
+
+            json_pretty = json.dumps(json_data,default=lambda o: o.__dict__,sort_keys=False,  indent=9)
+            return HttpResponse(json_pretty,content_type="application/json")
+
+        except:
+            return HttpResponse(f"API call fail due to no book at given id: {num1} or \
+            <a href ='https://anapioficeandfire.com/api/books/{num1}'>https://anapioficeandfire.com/api/books/{num1}</a> <br> \
+                Post the data at id: {num1} at \
+                   <a href ='https://anapioficeandfire.com/api/books/{num1}'>https://anapioficeandfire.com/api/books/{num1}</a> ")
+
+        
 
 def books(request):
 
@@ -182,32 +180,26 @@ def books(request):
         json_pretty = json.dumps(json_data,default=lambda o: o.__dict__,sort_keys=False,  indent=9)
         return HttpResponse(json_pretty,content_type="application/json")
 
-    #return HttpResponse("heh")
 
     elif request.method == 'POST':
         return render(request,'form.html')
-        """num1=request.POST['num1']    
-        soup1=apiData(num1)
-        updateTable(soup1)
-        #del soup1['characters']
-        
-        allvideos= table.objects.all()
 
-        return render(request,'result.html',{'soup':allvideos})"""
 
     elif request.method == 'DELETE':
         url=request.get_full_path()
         try:
             id=int(url.split('/')[-2][1:])
         except:
-            id=url.split('/')[-1][1:]
+            id=int(url.split('/')[-1][1:])
         try:
             record = table.objects.get(id=int(id))
+            book_message = f"The book {table.name} was deleted successfully"
             record.delete()
         except:
             record=[]
-        json_data=represtingInJson1(record)
-        #return render(request,'json.html',{'soup':json_data})
+            book_message = "No book with given id: {id}"
+        record=[]
+        json_data=represtingInJson1(record,dit=OrderedDict({"message":book_message}))
         json_pretty = json.dumps(json_data,default=lambda o: o.__dict__,sort_keys=False,  indent=9)
         return HttpResponse(json_pretty,content_type="application/json")
 
@@ -217,21 +209,18 @@ def books(request):
         pass
     
 def update(request):
+    #print("heha")
     url=request.get_full_path()
     try:
         id=int(url.split('/')[-2][1:])
     except:
-        id=url.split('/')[-1][1:]
-    #record = table.objects.get(id=int(id))
+        id=int(url.split('/')[-1][1:])
     try:
-        record = table.objects.get(id=int(id))
-        #updateTable(record)
-        return render(request,'form.html')
-        #allvideos= table.objects.all()
+        record = table.objects.get(id=id)
+        return render(request,'form.html',{"heha_id":id})
     except:
-        allData= table.objects.all()
-    json_data=represtingInJson3(allData)
-    #return render(request,'result.html',{'soup':allvideos})
+        allData= table(id=id)
+    json_data=represtingInJson3(allData,dit=OrderedDict({"Id not found":f'{id}'}))
     json_pretty = json.dumps(json_data,default=lambda o: o.__dict__,sort_keys=False,  indent=9)
     return HttpResponse(json_pretty,content_type="application/json")
 
@@ -240,31 +229,29 @@ def deleteding(request):
     try:
         id=int(url.split('/')[-2][1:])
     except:
-        id=url.split('/')[-1][1:]
+        id=int(url.split('/')[-1][1:])
     try:
-        record = table.objects.get(id=int(id))
-        record.delete()
+            record = table.objects.get(id=int(id))
+            book_message = f"The book {record.name} was deleted successfully"
+            record.delete()
     except:
-        record=[]
-    json_data=represtingInJson1(record)
-    #return render(request,'json.html',{'soup':json_data})
+            record=[]
+            book_message = f"No book with given id: {id}"
+    record=[]
+    json_data=represtingInJson1(record,dit=OrderedDict({"message":book_message}))
     json_pretty = json.dumps(json_data,default=lambda o: o.__dict__,sort_keys=False,  indent=9)
     return HttpResponse(json_pretty,content_type="application/json")
 
 def getdata(request):
     url=request.get_full_path()
-    id=url.split('/')[-1][1:]
+    id=int(url.split('/')[-1][1:])
     print(id)
     try:
         record = table.objects.get(id=id)
     except:
         record=[]
-    #record.delete()
-    #print(record.id)
 
     json_data=represtingInJson1(record)
-    #return render(request,'json.html',{'soup':json_data})
-    #json_data = json_data.json()
     json_pretty = json.dumps(json_data,default=lambda o: o.__dict__,sort_keys=False,  indent=9)
     return HttpResponse(json_pretty,content_type="application/json")
 
@@ -281,9 +268,6 @@ def process(request):
         return HttpResponse("Heeee")
 
 def finding(request):
-
-    #name=request.GET['name'][1:]
-    #print(name)
     try:
         name=request.GET['name'][1:]
         posts=table.objects.filter(name__icontains=name)
@@ -296,8 +280,9 @@ def finding(request):
                 name=request.GET['publisher'][1:]
                 posts=table.objects.filter(publisher__icontains=name)
             except:
+                name=[]
                 posts=['heha']
-    print(posts)
+    print(name)
     json_data=represtingInJson3(posts)
     json_pretty = json.dumps(json_data,default=lambda o: o.__dict__,sort_keys=False,  indent=9)
     return HttpResponse(json_pretty,content_type="application/json")
@@ -311,4 +296,33 @@ def api_options(request):
     return render(request,'api_options.html')
 
 def search_options(request):
-    return HttpResponse("hehah")
+    return render(request,'books.html')
+
+def namefinding(request):
+    return render(request,'name.html')
+
+def findbyName(request):
+    name=request.POST['num1']
+    host = request.build_absolute_uri('/')
+    url=f'{host}api/v1/books?name:={name}'
+    return HttpResponseRedirect(url)
+
+def countryfinding(request):
+    return render(request,'country.html')
+
+def findbyCountry(request):
+    country=request.POST['num1']
+    host = request.build_absolute_uri('/')
+    url=f'{host}api/v1/books?country:={country}'
+    return HttpResponseRedirect(url)
+
+def publisherfinding(request):
+    return render(request,'publisher.html')
+
+def findbyPublisher(request):
+    publisher=request.POST['num1']
+    host = request.build_absolute_uri('/')
+    url=f'{host}api/v1/books?publisher:={publisher}'
+    return HttpResponseRedirect(url)
+
+

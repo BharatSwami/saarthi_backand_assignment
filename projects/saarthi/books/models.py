@@ -7,7 +7,7 @@ class table(models.Model):
     isbn = models.CharField(max_length=512)
     authors = models.CharField(max_length=512)
     country = models.CharField(max_length=512)
-    numberOfPages=models.CharField(max_length=512)
+    numberOfPages=models.IntegerField()
     publisher=models.CharField(max_length=512)
     release_date=models.CharField(max_length=512)
 

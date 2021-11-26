@@ -1,9 +1,14 @@
 {% extends 'index.html' %}
 
 {% block content %}
+<h2>Search Books By -</h2>
+<ul>
+    <li><a href="/api/external-books/name">Name</a><br></li>
+    <li><a href="/api/external-books/country">Country</a><br></li>
+    <li><a href="/api/external-books/publisher">Publisher</a><br></li>
+  </ul> 
+    
+    
 
-    <a href="/api/external-books/">name</a>
-    <a href="api/v1">country</a>
-<a href="api/v1">publisher</a>
 
 {% endblock %}
